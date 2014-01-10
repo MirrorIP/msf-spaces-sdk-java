@@ -8,13 +8,13 @@ To build the SDK, run the build task with ant:
 
     $ ant build
 
-To integrate the SDK in your application, add the JARs provided in the "dist" to your classpath. The following JARs are required:
+To integrate the SDK in your application, add the following JARs provided in the "dist" directory to your classpath:
 
     jdom-2.0.5.jar
     smack-3.3.1-MODIFIED.jar
     smackx-3.3.1.jar
     spaces-sdk-api-1.3.jar
-    spaces-sdk-java-1.3
+    spaces-sdk-java-1.3.jar
 
 The database connectors are only required if you want to persist you local cache, see [DatabaseConfig][3] for details.
 
