@@ -71,7 +71,7 @@
 	        srcdir="${src.dir}"
 	        destdir="${debug.build.dir}"
 	        debug="true"
-	        debuglevel="$lines,vars,source">
+	        debuglevel="lines,vars,source">
 	        <compilerarg line="" /> <!-- "-Xlint:all", "-Xlint:all,-path", "-Xlint:all,-path,-unchecked" -->
 	        <classpath refid="project.classpath" />
 	    </javac>
