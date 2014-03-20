@@ -14,7 +14,7 @@ To integrate the SDK in your application, add the following JARs provided in the
     smack-3.3.1-MODIFIED.jar
     smackx-3.3.1.jar
     spaces-sdk-api-1.3.jar
-    spaces-sdk-java-1.3.jar
+    spaces-sdk-java-1.3.1.jar
 
 The database connectors are only required if you want to persist you local cache, see [DatabaseConfig][3] for details.
 
