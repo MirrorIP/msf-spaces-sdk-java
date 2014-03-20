@@ -153,7 +153,6 @@ public class ConnectionHandler implements de.imc.mirror.sdk.ConnectionHandler, C
 	public void connect() throws ConnectionStatusException {
 		this.establishConnection();
 		this.login();
-		this.networkInformation = requestNetworkInformation();
 	}
 
 	/**
@@ -167,7 +166,6 @@ public class ConnectionHandler implements de.imc.mirror.sdk.ConnectionHandler, C
 		this.establishConnection();
 		this.createUser();
 		this.login();
-		this.networkInformation = requestNetworkInformation();
 	}
 
 	private void establishConnection() throws ConnectionStatusException{
@@ -190,6 +188,7 @@ public class ConnectionHandler implements de.imc.mirror.sdk.ConnectionHandler, C
 		}
 		try {
 			connection.login(userInfo.getUsername(), password, userInfo.getResource());
+			this.networkInformation = requestNetworkInformation();
 		} catch (XMPPException e) {
 			setConnectionStatus(ConnectionStatus.ERROR);
 			throw new ConnectionStatusException("Failed to login to the XMPP server.", e);

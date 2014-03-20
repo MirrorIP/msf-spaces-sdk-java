@@ -49,6 +49,11 @@ License information for third party libraries is provided with the related JAR f
 
 ## Changelog
 
+v1.3.1 - March 20, 2014
+
+* [NEW] Added experimental (non-API) call for synchronous publishing of data objects: DataHandler.publishAndRetrieveDataObject().
+* [FIX] Fixed a bug causing a NullPointerException thrown if data is retrieved from the pubsub node.
+
 v1.3.0 - January 10, 2014
 
 * [NEW] Implements Spaces SDK API 1.3.

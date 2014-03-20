@@ -413,11 +413,27 @@ public class DataHandler implements OfflineModeHandler, de.imc.mirror.sdk.DataHa
 	 * @throws UnknownEntityException A space with the given id is not known to the space handler.
 	 * @throws InvalidDataException The data was rejected by the spaces service.
 	 */
+	@Override
 	public void publishDataObject(DataObject object, String spaceId) throws UnknownEntityException, InvalidDataException {
 		de.imc.mirror.sdk.java.DataObject obj = (de.imc.mirror.sdk.java.DataObject) object;
 		SimplePayload payload = new SimplePayload(obj.getElementName(), 
 				obj.getNamespaceURI(), obj.toString());
 		publish(spaceId, payload);
+	}
+	
+	/**
+	 * Publishes a data objects and returns the object sent over the space.
+	 * Use this method to access fields set server-side like the data object identifier.  
+	 * @param dataObject Data object to publish.
+	 * @param spaceId Identifier if the space to publish.
+	 * @return Data object as published on the space.
+	 * @throws UnknownEntityException A space with the given id is not known to the space handler.
+	 * @throws InvalidDataException The data was rejected by the spaces service.
+	 * @throws ConnectionStatusException The data handler has to be online in order to make a synchronous call.
+	 */
+	public DataObject publishAndRetrieveDataObject(DataObject dataObject, String spaceId) throws UnknownEntityException, InvalidDataException, ConnectionStatusException {
+		SimplePayload payload = new SimplePayload(dataObject.getElement().getName(), dataObject.getNamespaceURI(), dataObject.toString());
+		return publishAndRetrieve(spaceId, payload);
 	}
 	
 	/**
@@ -439,7 +455,7 @@ public class DataHandler implements OfflineModeHandler, de.imc.mirror.sdk.DataHa
 			String service = pubsubProperties.get("domain");
 			LeafNode node;
 			node = (LeafNode) getNode(nodeId, service);
-			if (node == null){
+			if (node == null) {
 				throw new UnknownEntityException("There's no node with this id.");
 			}
 			String itemId = UUID.randomUUID().toString();
@@ -465,6 +481,67 @@ public class DataHandler implements OfflineModeHandler, de.imc.mirror.sdk.DataHa
 			String id = UUID.randomUUID().toString();
 			datawrapper.savePayloadToSend(userInfo.getBareJID(), id, spaceId, payload);
 		}
+	}
+	
+	private DataObject publishAndRetrieve(String spaceId, SimplePayload payload) throws UnknownEntityException, ConnectionStatusException, InvalidDataException {
+		if (getMode() != Mode.ONLINE) {
+			throw new ConnectionStatusException("The data handler has to be ONLINE to publish data objects synchronously.");
+		}
+		Space space = spaceHandler.getSpace(spaceId);
+		if (space == null) {
+			throw new UnknownEntityException("There's no known space for this id.");
+		}
+		SpaceChannel channel = space.getPubSubChannel();
+		Map<String, String> properties = channel.getProperties();
+		LeafNode node = (LeafNode) getNode(properties.get("node"), properties.get("domain"));
+		final String itemId = UUID.randomUUID().toString();
+		final RequestFuture<DataObject> requestFuture = new RequestFuture<DataObject>();
+		final PayloadItem<SimplePayload> itemToPublish = new PayloadItem<SimplePayload>(itemId, payload);
+		
+		ItemEventListener<PayloadItem<SimplePayload>> itemEventListener = new ItemEventListener<PayloadItem<SimplePayload>>() {
+			@Override
+			public void handlePublishedItems(ItemPublishEvent<PayloadItem<SimplePayload>> event) {
+				for (PayloadItem<SimplePayload> item : event.getItems()) {
+					if (itemToPublish.getId().equals(item.getId())) {
+			        	DataObject dataObject = parseItemToDataObject(item);
+			        	requestFuture.setResponse(dataObject);
+					}
+				}
+			}
+		}; 
+		node.addItemEventListener(itemEventListener);
+		
+		RequestFuture<IQ> sentNotificationFuture = new RequestFuture<IQ>();
+		pendingPublishingRequests.put(itemId, sentNotificationFuture);
+		node.publish(itemToPublish);
+		try {
+			IQ response = sentNotificationFuture.get(timeout, TimeUnit.MILLISECONDS);
+			XMPPError error = response.getError(); 
+			if (error != null) {
+				throw new InvalidDataException(error.getMessage());
+			}
+		} catch (InterruptedException e){
+			throw new RequestException("Failed to sent data object: Receiving a response was interrupted.", e);
+		} catch (ExecutionException e) {
+			throw new RequestException("Failed to sent data object: Couldn't receive a response.", e);
+		} catch (TimeoutException e) {
+			throw new RequestException("Failed to sent data object: Receiving a response timed out.", e);
+		}
+		
+		DataObject dataObject = null;
+		try {
+			dataObject = requestFuture.get(timeout, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			throw new RequestException("Receiving a response was interrupted.", e);
+		} catch (ExecutionException e) {
+			throw new RequestException("Couldn't receive a response.", e);
+		} catch (TimeoutException e) {
+			throw new RequestException("The request timed out.", e);
+		} finally {
+			node.removeItemEventListener(itemEventListener);
+		}
+		
+		return dataObject;
 	}
 
 	/**
@@ -834,7 +911,7 @@ public class DataHandler implements OfflineModeHandler, de.imc.mirror.sdk.DataHa
 			// nothing persisted
 			return dataObjects;
 		}
-		SpaceChannel spaceChannel = space.getPersistenceChannel();
+		SpaceChannel spaceChannel = space.getPubSubChannel();
 		String nodeId = spaceChannel.getProperties().get("node");
 		String pubsubJID = spaceChannel.getProperties().get("domain");
 		LeafNode node;
