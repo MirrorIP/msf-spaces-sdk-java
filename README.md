@@ -96,10 +96,10 @@ v1.0.0 - October 26, 2012
 
   [1]: https://github.com/MirrorIP
   [2]: http://www.igniterealtime.org/projects/smack/
-  [3]: http://docs.mirror-demo.eu/spaces-sdk/java/1.3/index.html?de/imc/mirror/sdk/java/data/DatabaseConfig.html
-  [4]: %28https://github.com/MirrorIP/msf-spaces-sdk-api
-  [5]: http://docs.mirror-demo.eu/spaces-sdk/java/1.3/index.html?de/imc/mirror/sdk/java/ConnectionHandler.html
-  [6]: http://docs.mirror-demo.eu/spaces-sdk/java/1.3/index.html?de/imc/mirror/sdk/java/SpaceHandler.html
-  [7]: http://docs.mirror-demo.eu/spaces-sdk/java/1.3/index.html?de/imc/mirror/sdk/java/DataHandler.html
+  [3]: http://docs.mirror-demo.eu/spaces-sdk/java/1.3.1/index.html?de/imc/mirror/sdk/java/data/DatabaseConfig.html
+  [4]: https://github.com/MirrorIP/msf-spaces-sdk-api
+  [5]: http://docs.mirror-demo.eu/spaces-sdk/java/1.3.1/index.html?de/imc/mirror/sdk/java/ConnectionHandler.html
+  [6]: http://docs.mirror-demo.eu/spaces-sdk/java/1.3.1/index.html?de/imc/mirror/sdk/java/SpaceHandler.html
+  [7]: http://docs.mirror-demo.eu/spaces-sdk/java/1.3.1/index.html?de/imc/mirror/sdk/java/DataHandler.html
   [8]: https://github.com/MirrorIP/msf-persistence-service
   [9]: http://www.apache.org/licenses/LICENSE-2.0.html
