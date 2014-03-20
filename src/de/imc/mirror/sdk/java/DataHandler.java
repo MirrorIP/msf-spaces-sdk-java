@@ -447,14 +447,9 @@ public class DataHandler implements OfflineModeHandler, de.imc.mirror.sdk.DataHa
 	 */
 	private void publish(String spaceId, SimplePayload payload) throws UnknownEntityException, InvalidDataException, RequestException {
 		if (getMode() == Mode.ONLINE) {
-			Map<String, String> pubsubProperties = spaceHandler.getSpaceNodeAndDomain(spaceId);
-			if (pubsubProperties == null) {
-				throw new UnknownEntityException("There's no known space for this id.");
-			}
-			String nodeId = pubsubProperties.get("node");
-			String service = pubsubProperties.get("domain");
-			LeafNode node;
-			node = (LeafNode) getNode(nodeId, service);
+			SpaceChannel channel = spaceHandler.getPubSubChannel(spaceId);
+			Map<String, String> properties = channel.getProperties();
+			LeafNode node = (LeafNode) getNode(properties.get("node"), properties.get("domain"));
 			if (node == null) {
 				throw new UnknownEntityException("There's no node with this id.");
 			}
@@ -487,11 +482,7 @@ public class DataHandler implements OfflineModeHandler, de.imc.mirror.sdk.DataHa
 		if (getMode() != Mode.ONLINE) {
 			throw new ConnectionStatusException("The data handler has to be ONLINE to publish data objects synchronously.");
 		}
-		Space space = spaceHandler.getSpace(spaceId);
-		if (space == null) {
-			throw new UnknownEntityException("There's no known space for this id.");
-		}
-		SpaceChannel channel = space.getPubSubChannel();
+		SpaceChannel channel = spaceHandler.getPubSubChannel(spaceId);
 		Map<String, String> properties = channel.getProperties();
 		LeafNode node = (LeafNode) getNode(properties.get("node"), properties.get("domain"));
 		final String itemId = UUID.randomUUID().toString();
@@ -756,15 +747,11 @@ public class DataHandler implements OfflineModeHandler, de.imc.mirror.sdk.DataHa
 	 */
 	@Override
 	@Deprecated
-	public List<DataObject> retrieveDataObjects(String spaceId)
-			throws UnknownEntityException {
-		Map<String, String> properties = spaceHandler.getSpaceNodeAndDomain(spaceId);
-		if (properties == null){
-			throw new UnknownEntityException("The given space id doesn't belong to a known space.");
-		}
+	public List<DataObject> retrieveDataObjects(String spaceId) throws UnknownEntityException {
+		SpaceChannel channel = spaceHandler.getPubSubChannel(spaceId);
+		Map<String, String> properties = channel.getProperties();
 		String nodeId = properties.get("node");
-		List<DataObject> objs = 
-			datawrapper.getCachedDataObjects(nodeId);
+		List<DataObject> objs = datawrapper.getCachedDataObjects(nodeId);
 		return Collections.unmodifiableList(objs);
 	}
 

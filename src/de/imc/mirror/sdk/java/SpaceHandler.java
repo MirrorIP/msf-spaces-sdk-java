@@ -1216,34 +1216,31 @@ public class SpaceHandler implements de.imc.mirror.sdk.OfflineModeHandler, de.im
 	}
 	
 	/**
-	 * This method returns the pubsub properties of a space.
+	 * This method returns the pubsub channel of a space.
 	 * It first tries to get them from the local cache, if that fails it tries to get them from the server.
 	 * @param spaceId The Id of the space to get the Node and Domain for.
-	 * @return A Map consisting of the 'node' and 'domain' of the space.
+	 * @return The pubsub channel of the space.
+	 * @throws UnknownEntityException A space with the given ID is not available for the current user.
 	 */
-	protected Map<String, String> getSpaceNodeAndDomain(String spaceId) {
+	protected SpaceChannel getPubSubChannel(String spaceId) throws UnknownEntityException {
+		// Try to retrieve data from cache. 
 		List<Space> spacesList = datawrapper.getCachedSpacesForUser(userInfo.getBareJID());
-		for (Space space:spacesList){
+		for (Space space:spacesList) {
 			if (space.getId().equalsIgnoreCase(spaceId)){
-				SpaceChannel channel = space.getPubSubChannel();
-				Map<String, String> properties = channel.getProperties();
-				if (properties.get("domain") != null && properties.get("node") != null) {
-					return properties;
-				} else {
-					break;
-				}
+				return space.getPubSubChannel();
 			}
 		}
-		if (getMode() == Mode.ONLINE){
+		
+		// Request data.
+		if (getMode() == Mode.ONLINE) {
 			Space space = getSpace(spaceId);
-			if (space.getId().equalsIgnoreCase(spaceId)){
-				SpaceChannel channel = space.getPubSubChannel();
-				Map<String, String> properties = channel.getProperties();
-				if (properties.get("domain") != null && properties.get("node") != null) {
-					return properties;
-				}
+			if (space != null && space.getId().equalsIgnoreCase(spaceId)) {
+				return space.getPubSubChannel();
+			} else {
+				throw new UnknownEntityException("No space with ID " + spaceId + " available.");
 			}
+		} else {
+			throw new UnknownEntityException("OFFLINE mode: No space with ID " + spaceId + " cached.");
 		}
-		return null;
 	}
 }

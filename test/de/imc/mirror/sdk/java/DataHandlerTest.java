@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -185,6 +186,49 @@ public class DataHandlerTest {
 			fail("Execturion exception when performing publishing request: " + e.getMessage());
 		} catch (TimeoutException e) {
 			fail("Failed to recieve response within " + timeout + " milliseconds.");
+		}
+	}
+	
+	@Test
+	public void testMethodPublishAndRetrieveDataObject() {
+		String spaceId = connectionHandler.getCurrentUser().getUsername(); // private space
+		int timeout = Integer.parseInt(props.getProperty("test.params.timeout"));
+		String customId = UUID.randomUUID().toString(); 
+		final RequestFuture<DataObject> requestFuture = new RequestFuture<DataObject>();
+		
+		try {
+			dataHandler.registerSpace(spaceId);
+		} catch (UnknownEntityException e) {
+			fail("Failed to register for space :" + e.getMessage());
+		}
+		
+		DataObjectListener listener = new DataObjectListener() {
+			@Override
+			public void handleDataObject(DataObject dataObject, String spaceId) {
+				requestFuture.setResponse(dataObject);
+			}
+		};
+		dataHandler.addDataObjectListener(listener);
+		
+		try {
+			DataObject pingObject = generatePingObject(customId);
+			DataObject publishedDataObject = dataHandler.publishAndRetrieveDataObject(pingObject, spaceId);
+			DataObject receivedDataObject = requestFuture.get(timeout, TimeUnit.MILLISECONDS);
+			assertEquals("Published data object custom id does not match.", customId, publishedDataObject.getElement().getAttributeValue("customId"));
+			assertTrue("Published and received data object differ.", receivedDataObject.toString().equals(publishedDataObject.toString()));
+			assertEquals("Received data object does not contain correct custom id.", customId, receivedDataObject.getElement().getAttributeValue("customId"));
+		} catch (InterruptedException e) {
+			fail("Publishing request was interrupted: " + e.getMessage());
+		} catch (ExecutionException e) {
+			fail("Execturion exception when performing publishing request: " + e.getMessage());
+		} catch (TimeoutException e) {
+			fail("Failed to recieve response within " + timeout + " milliseconds.");
+		} catch (UnknownEntityException e) {
+			fail("Unknown space: " + e.getMessage());
+		} catch (InvalidDataException e) {
+			fail("The data object was rejected: " + e.getMessage());
+		} catch (ConnectionStatusException e) {
+			fail("Wrong connection status: " + e.getMessage());
 		}
 	}
 
@@ -509,9 +553,12 @@ public class DataHandlerTest {
 			DataObject[] receivedObjects = new DataObject[2]; 
 			receivedObjects[0] = requestFutures.get(customIds[0]).get(timeout, TimeUnit.MILLISECONDS);
 			Thread.sleep(1000l);
-			Date publishingDateForSecondObject = new Date();
 			publishPing(customIds[1], spaceId);
 			receivedObjects[1] = requestFutures.get(customIds[1]).get(timeout, TimeUnit.MILLISECONDS);
+			Date publishingDateForSecondObject = receivedObjects[1].getCDMData().getTimeStamp();
+			Calendar cal = Calendar.getInstance();
+			cal.setTime(publishingDateForSecondObject);
+			cal.add(Calendar.MILLISECOND, -500);
 			Set<String> objectIds = new HashSet<String>();
 			for (DataObject receivedObject : receivedObjects) objectIds.add(receivedObject.getId());
 
@@ -531,7 +578,8 @@ public class DataHandlerTest {
 			
 			Thread.sleep(1000l);
 			Set<SerializableDataObjectFilter> filters = new HashSet<SerializableDataObjectFilter>();
-			filters.add(new PeriodFilter(publishingDateForSecondObject, new Date()));
+			filters.add(new PeriodFilter(cal.getTime(), null));
+			System.out.println("Filter set.");
 			queriedObjects = dataHandler.queryDataObjectsById(objectIds, filters);
 			assertNotNull("A null response was returned.", queriedObjects);
 			assertEquals("An invalid number of data objects was returned: " + queriedObjects.size(), 1, queriedObjects.size());

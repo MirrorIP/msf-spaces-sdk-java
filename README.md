@@ -38,7 +38,7 @@ The SDK for Java implements the [Space SDK API][4]. Three major handlers are pro
 Details about the usage of the handlers are available of the SDK API documentation.
 
 The complete API documentation for the Java SDK is available here:
-http://docs.mirror-demo.eu/spaces-sdk/java/1.3/
+http://docs.mirror-demo.eu/spaces-sdk/java/1.3.1/
 
 The general API description is also available:
 http://docs.mirror-demo.eu/spaces-sdk/api/1.3/
@@ -52,7 +52,8 @@ License information for third party libraries is provided with the related JAR f
 v1.3.1 - March 20, 2014
 
 * [NEW] Added experimental (non-API) call for synchronous publishing of data objects: DataHandler.publishAndRetrieveDataObject().
-* [FIX] Fixed a bug causing a NullPointerException thrown if data is retrieved from the pubsub node.
+* [FIX] Fixed bug causing a NullPointerException thrown if data is retrieved from the pubsub node.
+* [FIX] Minor fixes.
 
 v1.3.0 - January 10, 2014
 
