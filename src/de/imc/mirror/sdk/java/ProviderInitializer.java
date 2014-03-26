@@ -11,7 +11,6 @@ import org.jivesoftware.smackx.pubsub.provider.AffiliationsProvider;
 import org.jivesoftware.smackx.pubsub.provider.ConfigEventProvider;
 import org.jivesoftware.smackx.pubsub.provider.EventProvider;
 import org.jivesoftware.smackx.pubsub.provider.FormNodeProvider;
-import org.jivesoftware.smackx.pubsub.provider.ItemProvider;
 import org.jivesoftware.smackx.pubsub.provider.ItemsProvider;
 import org.jivesoftware.smackx.pubsub.provider.PubSubProvider;
 import org.jivesoftware.smackx.pubsub.provider.RetractEventProvider;
@@ -20,6 +19,7 @@ import org.jivesoftware.smackx.pubsub.provider.SubscriptionProvider;
 import org.jivesoftware.smackx.pubsub.provider.SubscriptionsProvider;
 
 import de.imc.mirror.sdk.config.NamespaceConfig;
+import de.imc.mirror.sdk.java.packet.ItemProvider;
 import de.imc.mirror.sdk.java.packet.PersistenceServiceDeleteProvider;
 import de.imc.mirror.sdk.java.packet.PersistenceServiceQueryProvider;
 

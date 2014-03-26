@@ -49,6 +49,9 @@ License information for third party libraries is provided with the related JAR f
 
 ## Changelog
 
+v1.3.2 - March 26, 2014
+* [FIX] Replaced pubsub item provider to fix parsing of received data objects.
+
 v1.3.1 - March 20, 2014
 
 * [NEW] Added experimental (non-API) call for synchronous publishing of data objects: DataHandler.publishAndRetrieveDataObject().

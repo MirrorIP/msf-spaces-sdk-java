@@ -1,6 +1,7 @@
 package de.imc.mirror.sdk.java.packet;
 
 import org.jdom2.Element;
+import org.jdom2.Namespace;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.provider.IQProvider;
 import org.xmlpull.v1.XmlPullParser;
@@ -35,7 +36,12 @@ public class PersistenceServiceQueryProvider implements IQProvider {
 		String namespace = parser.getNamespace();
 		Element element = new Element(elementName, namespace);
 		for (int i = 0; i < parser.getAttributeCount(); i++) {
-			element.setAttribute(parser.getAttributeName(i), parser.getAttributeValue(i));
+			if (parser.getAttributePrefix(i) != null) {
+				Namespace attributeNamespace = Namespace.getNamespace(parser.getAttributePrefix(i), parser.getAttributeNamespace(i));
+				element.setAttribute(parser.getAttributeName(i), parser.getAttributeValue(i), attributeNamespace);
+			} else {
+				element.setAttribute(parser.getAttributeName(i), parser.getAttributeValue(i));
+			}
 		}
 		
 		boolean done = false;

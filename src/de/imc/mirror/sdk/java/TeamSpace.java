@@ -22,7 +22,7 @@ import de.imc.mirror.sdk.Space.PersistenceType;
 public class TeamSpace extends Space implements Serializable, de.imc.mirror.sdk.TeamSpace {
 	
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 
 	/**
 	 * Create a new TeamSpaceObject with the given properties.
@@ -54,7 +54,7 @@ public class TeamSpace extends Space implements Serializable, de.imc.mirror.sdk.
 	}
 	
 	private synchronized void writeObject(ObjectOutputStream s) throws IOException{
-		Element element = new Element("OrgaSpace");
+		Element element = new Element("TeamSpace");
 		element.setAttribute("channelAmount", Integer.toString(channels.size()));
 		setAttributesToSerialize(element);
 		element.setAttribute("membersAmount", Integer.toString(members.size()));
