@@ -34,6 +34,8 @@ import de.imc.mirror.sdk.OfflineModeHandler.Mode;
 import de.imc.mirror.sdk.SerializableDataObjectFilter;
 import de.imc.mirror.sdk.Space.PersistenceType;
 import de.imc.mirror.sdk.Space.Type;
+import de.imc.mirror.sdk.SpaceMember;
+import de.imc.mirror.sdk.SpaceMember.Role;
 import de.imc.mirror.sdk.cdm.CDMVersion;
 import de.imc.mirror.sdk.exceptions.ConnectionStatusException;
 import de.imc.mirror.sdk.exceptions.InvalidDataException;
@@ -775,6 +777,8 @@ public class DataHandlerTest {
 			if (dataHandler.queryDataObjectById(receivedObject.getId()) != null) {
 				fail("The deleted data object can still be retrieved.");
 			}
+			isIndicatedAsDeleted = dataHandler.deleteDataObject("noid");
+			assertTrue("Deleted non-existing data object.", !isIndicatedAsDeleted);
 		} catch (ConnectionStatusException e) {
 			fail("Wrong connection status: " + e.getMessage());
 		} catch (InterruptedException e) {
@@ -789,6 +793,87 @@ public class DataHandlerTest {
 			fail("The data object query failed: " + e.getMessage());
 		}
 	}
+	
+	/**
+	 * May cause an error because spaces and persistence service communicate asynchronous - which is fine.
+	 */
+	@Test
+	@Ignore
+	public void testBulkDeletion() {
+		String spaceId = connectionHandler.getCurrentUser().getUsername(); // private space
+		String customId = UUID.randomUUID().toString(); 
+		int numIterations = 10;
+		
+		Space space = (Space) spaceHandler.getSpace(spaceId);
+		SpaceConfiguration spaceConfiguration = space.generateSpaceConfiguration();
+		spaceConfiguration.setPersistenceType(PersistenceType.ON);
+		
+		try {
+			spaceHandler.configureSpace(spaceId, spaceConfiguration);
+		} catch (SpaceManagementException e) {
+			fail("Failed to configure space: " + e.getMessage());
+		} catch (ConnectionStatusException e) {
+			fail("Invalid connection status: " + e.getMessage());
+		}
+		
+		try {
+			for (int i = 0; i < numIterations; i++) {
+				DataObject pingObject = dataHandler.publishAndRetrieveDataObject(generatePingObject(customId), spaceId);
+				boolean isIndicatedAsDeleted = dataHandler.deleteDataObject(pingObject.getId());
+				assertTrue("The deletion was not confirmed.", isIndicatedAsDeleted);
+				if (dataHandler.queryDataObjectById(pingObject.getId()) != null) {
+					fail("The deleted data object can still be retrieved.");
+				}
+			}
+		} catch (ConnectionStatusException e) {
+			fail("Wrong connection status: " + e.getMessage());
+		} catch (UnsupportedOperationException e) {
+			fail("Queries are not supported: " + e.getMessage());
+		} catch (QueryException e) {
+			fail("The data object query failed: " + e.getMessage());
+		} catch (UnknownEntityException e) {
+			fail("The given space is unknown: " + e.getMessage());
+		} catch (InvalidDataException e) {
+			fail("Failed to generate data object: " + e.getMessage());
+		}
+	}
+	
+	@Test
+	public void testFailDeleteDataObject() {
+		Set<SpaceMember> spaceMembers = new HashSet<SpaceMember>();
+		spaceMembers.add(new de.imc.mirror.sdk.java.SpaceMember(connectionHandler.getCurrentUser().getBareJID(), Role.MEMBER));
+		String spaceModerator = props.getProperty("test.user.02.id") + "@" + props.getProperty("xmpp.domain");
+		spaceMembers.add(new de.imc.mirror.sdk.java.SpaceMember(spaceModerator, Role.MODERATOR));
+		SpaceConfiguration spaceConfiguration = new SpaceConfiguration(Type.TEAM, "Deletion Test Space", spaceMembers, PersistenceType.ON, null);
+		TeamSpace space = null;
+		try {
+			space = (TeamSpace) spaceHandler.createSpace(spaceConfiguration);
+		} catch (SpaceManagementException e) {
+			fail("Failed to configure space: " + e.getMessage());
+		} catch (ConnectionStatusException e) {
+			fail("Invalid connection status: " + e.getMessage());
+		}
+		
+		String customId = UUID.randomUUID().toString();
+		try {
+			DataObject pingObject = dataHandler.publishAndRetrieveDataObject(generatePingObject(customId), space.getId());
+			dataHandler.deleteDataObject(pingObject.getId());
+			fail("An query exception should have been thrown.");
+		} catch (ConnectionStatusException e) {
+			fail("Wrong connection status: " + e.getMessage());
+		} catch (UnsupportedOperationException e) {
+			fail("Queries are not supported: " + e.getMessage());
+		} catch (QueryException e) {
+			if (e.getType() != QueryException.Type.ACCESS_DENIED) {
+				fail("The data object query failed: " + e.getMessage());
+			}
+		} catch (UnknownEntityException e) {
+			fail("The given space is unknown: " + e.getMessage());
+		} catch (InvalidDataException e) {
+			fail("Failed to generate data object: " + e.getMessage());
+		}
+	}
+	
 	
 	@Test
 	public void testMethodDeleteDataObjects() {

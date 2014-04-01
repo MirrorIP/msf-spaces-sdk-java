@@ -255,8 +255,9 @@ public class DataHandler implements OfflineModeHandler, de.imc.mirror.sdk.DataHa
 			@Override
 			public boolean accept(Packet packet) {
 				if (!(packet instanceof IQ)) return false; // Accept only IQ packets.
-				if (!componentJID.equals(packet.getFrom())) return false; // Accept only packets for the given component. 
-				if (((IQ) packet).getType() != IQ.Type.RESULT) return false; // Accept only RESULTs.
+				if (!componentJID.equals(packet.getFrom())) return false; // Accept only packets for the given component.
+				IQ.Type type = ((IQ) packet).getType();
+				if (type != IQ.Type.RESULT && type != IQ.Type.ERROR) return false; // Accept only RESULTs.
 				return true;
 			}
 		};
