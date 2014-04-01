@@ -49,6 +49,9 @@ License information for third party libraries is provided with the related JAR f
 
 ## Changelog
 
+v1.3.3 - OPEN
+* [FIX] Persistence service queries now throw the correct exception if they fail.
+
 v1.3.2 - March 26, 2014
 * [FIX] Replaced pubsub item provider to fix parsing of received data objects.
 
