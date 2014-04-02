@@ -88,6 +88,7 @@ public class DataHandlerTest {
 		CDMDataBuilder cdmBuilder = new CDMDataBuilder(CDMVersion.CDM_1_0);
 		cdmBuilder.setModelVersion("1.0");
 		cdmBuilder.setCustomId(customId);
+		cdmBuilder.setPublisher(connectionHandler.getCurrentUser().getFullJID());
 		DataObjectBuilder objectBuilder = new DataObjectBuilder("ping", "mirror:application:ping:ping");
 		CDMData cdmData = null;
 		try {
